@@ -1,18 +1,23 @@
 Name:             tpm-tools
 Summary:          Management tools for the TPM hardware
 Version:          1.3.9
-Release:          2%{?dist}
+Release:          5%{?dist}
 License:          CPL
 Group:            Applications/System
 URL:              http://trousers.sourceforge.net
 
 Source0:          http://downloads.sourceforge.net/trousers/%{name}-%{version}.tar.gz
-# combination of upstream commit 5c5126b and submitted patch
-# upstream: https://sourceforge.net/p/trousers/mailman/trousers-tech/?viewmonth=201705
-Patch0:           tpm-sealdata.patch
 # upstream commit 9472ae7d72
-Patch1:           Fix-missing-linkage-with-openssl.patch
-BuildRequires:    trousers-devel openssl-devel opencryptoki-devel chrpath
+Patch0001:           Fix-missing-linkage-with-openssl.patch
+Patch0002:           0002-Fix-build-with-OpenSSL-1.1-due-to-RSA-being-an-opaqu.patch
+Patch0003:           0003-Allocate-OpenSSL-cipher-contexts-for-seal-unseal.patch
+# patches 4 & 5 submitted upstream by SUSE
+Patch0004:           0001-tpm_version-avoid-outputting-NULL-bytes-from-tpmVend.patch
+Patch0005:           0001-tpm_version-avoid-outputting-undefined-data-on-stder.patch
+# submitted upstream to trousers-tech mailing list
+Patch0006:           0001-man-manpage-cleanup.patch
+Patch0007:           0001-tpm-tools-fix-outdated-function-signature-in-tpmUnse.patch
+BuildRequires:    trousers-devel openssl-devel opencryptoki-devel
 # Working with upstream to fix this, but in the mean time we need this
 BuildRequires:    automake autoconf
 
@@ -44,21 +49,16 @@ tpm-tools-devel is a package that contains the libraries and headers necessary
 for developing tpm-tools applications.
 
 %prep
-%setup -cq
-%patch0 -p1
-%patch1 -p1
+%autosetup -p1 -c %{name}-%{version}
 autoreconf
 
 %build
-%configure
-make %{?_smp_mflags} V=1
+%configure --disable-static --disable-rpath --disable-silent-rules
+%make_build
 
 %install
-make install DESTDIR=$RPM_BUILD_ROOT INSTALL="install -p"
+%make_install INSTALL="install -p"
 rm -f $RPM_BUILD_ROOT/%{_libdir}/libtpm_unseal.la
-rm -f $RPM_BUILD_ROOT/%{_libdir}/libtpm_unseal.a
-chrpath -d %{buildroot}%{_bindir}/tpm_unsealdata
-chrpath -d %{buildroot}%{_bindir}/tpm_sealdata
 
 %post -p /sbin/ldconfig
 
@@ -87,6 +87,19 @@ chrpath -d %{buildroot}%{_bindir}/tpm_sealdata
 %{_mandir}/man3/tpmUnseal*
 
 %changelog
+* Sun Jan 27 2019 Jerry Snitselaar <jsnitsel@redhat.com> - 1.3.9-5
+- manpage cleanup
+Resolves: rhbz#1517359 rhbz#948906 rhbz#1666317
+
+* Sun Jan 27 2019 Jerry Snitselaar <jsnitsel@redhat.com> - 1.3.9-4
+- add autoreconf back to prep
+Resolves: rhbz#1654985
+
+* Wed Jan 16 2019 Jerry Snitselaar <jsnitsel@redhat.com> - 1.3.9-3
+- Fix garbage being printed in tpm_version output
+- backport spec file cleanups
+Resolves: rhbz#1654985
+
 * Thu May 04 2017 Jerry Snitselaar <jsnitsel@redhat.com> - 1.3.9-2
 - Fix missing linkage
 - Allocate and free cipher context (bz 1447827)

@@ -1,0 +1,29 @@
+From d11a2d62797e6794105470c1dd5f99017d9484e3 Mon Sep 17 00:00:00 2001
+From: Jerry Snitselaar <jsnitsel@redhat.com>
+Date: Sun, 27 Jan 2019 23:17:02 -0700
+Subject: [PATCH] tpm-tools: fix outdated function signature in tpmUnsealFile
+ manpage
+
+The tpmUnsealFile manpage hasn't been updated with changes to tpmUnsealFile.
+
+Signed-off-by: Jerry Snitselaar <jsnitsel@redhat.com>
+---
+ man/man3/tpmUnsealFile.3 | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/man/man3/tpmUnsealFile.3 b/man/man3/tpmUnsealFile.3
+index 1fda48f..c362298 100644
+--- a/man/man3/tpmUnsealFile.3
++++ b/man/man3/tpmUnsealFile.3
+@@ -28,7 +28,7 @@ tpmUnsealFile, tpmUnsealShred, tpmUnsealStrerror - unseal routines
+ .hy 0
+ .B #include <tpm_unseal/tpm_unseal.h>
+ .sp
+-.B int tpmUnsealFile(char* file, char** data, int* size);
++.B int tpmUnsealFile(char* fname, char** tss_data, int* tss_size, BOOL srkWellKnown);
+ .br
+ .B void tpmUnsealShred(char* data, int size);
+ .br
+-- 
+2.20.1.98.gecbdaf0899
+

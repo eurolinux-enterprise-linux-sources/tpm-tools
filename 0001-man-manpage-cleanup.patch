@@ -1,0 +1,232 @@
+From 65ca7418b9a884bb5271e602cf63fc8845397988 Mon Sep 17 00:00:00 2001
+From: Jerry Snitselaar <jsnitsel@redhat.com>
+Date: Sun, 27 Jan 2019 21:55:19 -0700
+Subject: [PATCH] man: manpage cleanup
+
+tpm_restrictsrk and tpm_unsealdata are missing manpages.
+Add missing options to tpm_nvdefine and tpm_setpresence.
+
+Signed-off-by: Jerry Snitselaar <jsnitsel@redhat.com>
+---
+ man/man1/Makefile.am       |  1 +
+ man/man1/tpm_unsealdata.1  | 60 +++++++++++++++++++++++++++++++++
+ man/man8/Makefile.am       |  1 +
+ man/man8/tpm_nvdefine.8    | 13 ++++++--
+ man/man8/tpm_restrictsrk.8 | 68 ++++++++++++++++++++++++++++++++++++++
+ man/man8/tpm_setpresence.8 |  3 ++
+ 6 files changed, 144 insertions(+), 2 deletions(-)
+ create mode 100644 man/man1/tpm_unsealdata.1
+ create mode 100644 man/man8/tpm_restrictsrk.8
+
+diff --git a/man/man1/Makefile.am b/man/man1/Makefile.am
+index ff8b571..f833363 100644
+--- a/man/man1/Makefile.am
++++ b/man/man1/Makefile.am
+@@ -22,6 +22,7 @@
+ #
+ 
+ man1_MANS	=	tpm_sealdata.1		\
++			tpm_unsealdata.1	\
+ 			tpm_version.1
+ if P11_SUPPORT
+ man1_MANS	+=	tpmtoken_init.1		\
+diff --git a/man/man1/tpm_unsealdata.1 b/man/man1/tpm_unsealdata.1
+new file mode 100644
+index 0000000..80e8f12
+--- /dev/null
++++ b/man/man1/tpm_unsealdata.1
+@@ -0,0 +1,60 @@
++.\" Copyright (C) 2019 International Business Machines Corporation
++.\"
++.de Sh \" Subsection
++.br
++.if t .Sp
++.ne 5
++.PP
++\fB\\$1\fR
++.PP
++..
++.de Sp \" Vertical space (when we can't use .PP)
++.if t .sp .5v
++.if n .sp
++..
++.de Ip \" List item
++.br
++.ie \\n(.$>=3 .ne \\$3
++.el .ne 3
++.IP "\\$1" \\$2
++..
++.TH "tpm_unsealdata" 1 "2019-01-27"  "TPM Management"
++.ce 1
++TPM Management - tpm_unsealdata
++.SH NAME
++tpm_unsealdata \- unseal input data with the SRK of the system's TPM
++.SH "SYNOPSIS"
++.ad l
++.hy 0
++.B tpm_unsealdata
++.RB [ OPTION ]
++
++.SH "DESCRIPTION"
++.PP
++\fBtpm_unsealdata\fR unseals sensitive data that was sealed the SRK of the system's TPM.
++
++.TP
++\fB\-h\fR, \fB\-\-help\fR
++Display command usage info.
++.TP
++\fB-v\fR, \fB\-\-version\fR
++Display command version info.
++.TP
++\fB-l\fR, \fB\-\-log\fR [none|error|info|debug]
++Set logging level.
++.TP
++\fB-i\fR, \fB\-\-infile FILE\fR
++File containing data to unseal.
++.TP
++\fB-o\fR, \fB\-\-outfile FILE\fR
++Filename to write unsealed data to.  Default is STDOUT.
++.TP
++\fB-z\fR, \fB\-\-well-known\fR
++Use TSS_WELL_KNOWN_SECRET (20 zero bytes) as the SRK password. You will not be prompted for the SRK password with this option.
++
++.SH "SEE ALSO"
++.PP
++\fBtpm_sealdata\fR(1), \fBtpmUnsealFile\fR(3)
++
++.SH "REPORTING BUGS"
++Report bugs to <trousers-users@lists.sourceforge.net>
+diff --git a/man/man8/Makefile.am b/man/man8/Makefile.am
+index b38ac18..487a4c8 100644
+--- a/man/man8/Makefile.am
++++ b/man/man8/Makefile.am
+@@ -36,6 +36,7 @@ man8_MANS =	tpm_changeownerauth.8	\
+ 		tpm_createek.8		\
+ 		tpm_getpubek.8		\
+ 		tpm_restrictpubek.8	\
++		tpm_restrictsrk.8	\
+ 		tpm_selftest.8		\
+ 		tpm_setactive.8		\
+ 		tpm_setclearable.8	\
+diff --git a/man/man8/tpm_nvdefine.8 b/man/man8/tpm_nvdefine.8
+index 13edb78..0eecc2a 100644
+--- a/man/man8/tpm_nvdefine.8
++++ b/man/man8/tpm_nvdefine.8
+@@ -161,8 +161,8 @@ using \s-1TSS\s0 popup boxes
+ .IP "\fB\-y, \-\-owner\-well\-known\fR" 4
+ .IX Item "-y, --owner-well-known"
+ Use a secret of all zeros (20 bytes of zeros) as the owner's secret.
+-.IP "\fB\-z, \-\-area\-well\-known\fR" 4
+-.IX Item "-z, --area-well-known"
++.IP "\fB\-z, \-\-data\-well\-known\fR" 4
++.IX Item "-z, --data-well-known"
+ Use a secret of all zeros (20 bytes of zeros) as the \s-1NVRAM\s0 area's secret.
+ .IP "\fB\-o, \-\-pwdo\fR (optional parameter)" 4
+ .IX Item "-o, --pwdo (optional parameter)"
+@@ -189,6 +189,15 @@ To select the \s-1NVRAM\s0 area with index 0x100, the command line parameter sho
+ .IX Item "-s, --size"
+ The size of the \s-1NVRAM\s0 area.
+ The parameter must either be a decimal number or a hexadecimal number starting with '0x'.
++.IP "\fB\-r, \-\-rpcsr\fR" 4
++.IX Item "-r, --rpcrs"
++PCRs to seal the NVRAM area to for reading (use multiple times)
++.IP "\fB\-w, \-\-wpcrs\fR" 4
++.IX Item "-w, --wpcrs"
++PCRs to seal the NVRAM area to for writing (use multiple times)
++.IP "\fB\-f, \-\-filename\fR" 4
++.IX Item "-f, --filename"
++File containing PCR info for the NVRAM area.
+ .IP "\fB\-p, \-\-permissions\fR" 4
+ .IX Item "-p, --permissions"
+ The access permissions associated with the \s-1NVRAM\s0 area.
+diff --git a/man/man8/tpm_restrictsrk.8 b/man/man8/tpm_restrictsrk.8
+new file mode 100644
+index 0000000..7935b7b
+--- /dev/null
++++ b/man/man8/tpm_restrictsrk.8
+@@ -0,0 +1,68 @@
++.\" Copyright (C) 2019 International Business Machines Corporation
++.\"
++.de Sh \" Subsection
++.br
++.if t .Sp
++.ne 5
++.PP
++\fB\\$1\fR
++.PP
++..
++.de Sp \" Vertical space (when we can't use .PP)
++.if t .sp .5v
++.if n .sp
++..
++.de Ip \" List item
++.br
++.ie \\n(.$>=3 .ne \\$3
++.el .ne 3
++.IP "\\$1" \\$2
++..
++.TH "tpm_restrictsrk" 8 "2019-01-27"  "TPM Management"
++.ce 1
++TPM Management - tpm_restrictsrk
++.SH NAME
++tpm_restrictsrk \- restrict the ability to access the Storage Root Key
++.SH "SYNOPSIS"
++.ad l
++.hy 0
++.B tpm_restrictsrk
++.RB [ OPTION ]
++
++.SH "DESCRIPTION"
++.PP
++\fBtpm_restrictsrk\fR reports the status of who can access the Storage Root Key.  This is the default behavior and also available with the \fB\-\-status\fR option.
++This operation will be in effect until the owner is cleared and prompts for the owner passord.  With the \fB\-\-restrict\fR option, the ability to access the Storage Root Key is resticted to the owner.
++The command prompts for the owner password to complete the operation.  The \fB\-\-allow\fR and \fB\-\-restrict\fR options are mutually exclusive and the last one on the command line will be carried out.
++
++.TP
++\fB\-h\fR, \fB\-\-help\fR
++Display command usage info.
++.TP
++\fB-v\fR, \fB\-\-version\fR
++Display command version info.
++.TP
++\fB-l\fR, \fB\-\-log\fR [none|error|info|debug]
++Set logging level.
++.TP
++\fB-u\fR, \fB\-\-unicode\fR
++Use TSS UNICODE encoding for passwords to comply with applications using TSS popup boxes
++.TP
++\fB-a\fR, \fB\-\-allow\fR
++Allow SRK read access using SRK auth
++.TP
++\fB-s\fR, \fB\-\-status\fR
++Display the status of who can access the Storage Root Key
++.TP
++\fB-r\fR, \fB\-\-restrict\fR
++Restrict SRK read to owner only
++.TP
++\fB-z\fR, \fB\-\-well-known\fR
++Authenticate using 20 bytes of zeros as owner password (the default TSS Well Known Secret), instead of prompting for an owner password.
++
++.SH "SEE ALSO"
++.PP
++\fBtpm_version\fR(1), \fBtpm_takeownership\fR(8), \fBtcsd\fR(8)
++
++.SH "REPORTING BUGS"
++Report bugs to <trousers-users@lists.sourceforge.net>
+diff --git a/man/man8/tpm_setpresence.8 b/man/man8/tpm_setpresence.8
+index a04c70f..96670e0 100644
+--- a/man/man8/tpm_setpresence.8
++++ b/man/man8/tpm_setpresence.8
+@@ -46,6 +46,9 @@ Set logging level.
+ \fB-u\fR, \fB\-\-unicode\fR
+ Use TSS UNICODE encoding for passwords to comply with applications using TSS popup boxes
+ .TP
++\fB-s\fR, \fB\-\-status\fR
++Report current physical presence states.
++.TP
+ \fB-a\fR, \fB\-\-assert\fR
+ Assert that an admin is physically present at the machine.
+ .TP
+-- 
+2.20.1.98.gecbdaf0899
+
