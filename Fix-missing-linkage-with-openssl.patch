@@ -1,0 +1,24 @@
+From 9472ae7d727c488401347482f516742954aa3521 Mon Sep 17 00:00:00 2001
+From: "Hon Ching(Vicky) Lo" <honclo@linux.vnet.ibm.com>
+Date: Sat, 18 Feb 2017 00:27:47 -0500
+Subject: [PATCH] Fix missing linkage with openssl
+
+Signed-off-by: Alon Bar-Lev <alonbl@users.sourceforge.net>
+Signed-off-by: Hon Ching (Vicky) Lo <honclo@linux.vnet.ibm.com>
+---
+ lib/Makefile.am | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/lib/Makefile.am b/lib/Makefile.am
+index c1d7009..6692042 100644
+--- a/lib/Makefile.am
++++ b/lib/Makefile.am
+@@ -80,4 +80,4 @@ endif
+ # Unseal library - for addition to existing apps, counter part of seal cmd
+ libtpm_unseal_la_SOURCES =	tpm_unseal.c
+ libtpm_unseal_la_LDFLAGS =	-shared -version-info 1:0:0
+-libtpm_unseal_la_LIBADD  =	-ltspi  libtpm_tspi.la @INTLLIBS@
++libtpm_unseal_la_LIBADD  =	-ltspi  libtpm_tspi.la -lcrypto @INTLLIBS@
+-- 
+2.13.0.rc0.45.ge2cb6ab84
+

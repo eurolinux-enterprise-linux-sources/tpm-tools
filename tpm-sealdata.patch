@@ -1,0 +1,56 @@
+diff -ur tpm-tools-1.3.9/lib/tpm_unseal.c tpm-tools-1.3.9-new/lib/tpm_unseal.c
+--- tpm-tools-1.3.9/lib/tpm_unseal.c	2016-11-17 14:09:33.000000000 -0700
++++ tpm-tools-1.3.9-new/lib/tpm_unseal.c	2017-05-04 09:19:05.898775124 -0700
+@@ -408,13 +408,19 @@
+ 	}
+ 
+ 	/* Decode and decrypt the encrypted data */
+-	EVP_CIPHER_CTX *ctx = NULL;
++	EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
++	if (!ctx) {
++		tpm_errno = ENOMEM;
++		rc = TPMSEAL_STD_ERROR;
++		goto tss_out;
++	}
+ 	EVP_DecryptInit(ctx, EVP_aes_256_cbc(), symKey, (unsigned char *)TPMSEAL_IV);
+ 
+ 	/* Create a base64 BIO to decode the encrypted data */
+ 	if ((b64 = BIO_new(BIO_f_base64())) == NULL) {
+ 		tpm_errno = EAGAIN;
+ 		rc = TPMSEAL_STD_ERROR;
++		EVP_CIPHER_CTX_free(ctx);
+ 		goto tss_out;
+ 	}
+ 
+@@ -425,6 +431,7 @@
+ 		res_size += rcLen;
+ 	}
+ 	EVP_DecryptFinal(ctx, res_data+res_size, &rcLen);
++	EVP_CIPHER_CTX_free(ctx);
+ 	res_size += rcLen;
+ 	bmem = BIO_pop(b64);
+ 	BIO_free(b64);
+diff -ur tpm-tools-1.3.9/src/cmds/tpm_sealdata.c tpm-tools-1.3.9-new/src/cmds/tpm_sealdata.c
+--- tpm-tools-1.3.9/src/cmds/tpm_sealdata.c	2016-11-17 14:09:33.000000000 -0700
++++ tpm-tools-1.3.9-new/src/cmds/tpm_sealdata.c	2017-05-04 09:11:19.725057752 -0700
+@@ -343,7 +343,11 @@
+ 	BIO_puts(bdata, TPMSEAL_ENC_STRING); 
+ 	bdata = BIO_push(b64, bdata);
+ 
+-	EVP_CIPHER_CTX *ctx = NULL;
++	EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
++	if (!ctx) {
++		logError(_("Unable to allocate cipher context\n"));
++		goto out_close;
++	}
+ 	EVP_EncryptInit(ctx, EVP_aes_256_cbc(), randKey, (unsigned char *)TPMSEAL_IV);
+ 
+ 	while ((lineLen = BIO_read(bin, line, sizeof(line))) > 0) {
+@@ -353,6 +357,7 @@
+ 	}
+ 
+ 	EVP_EncryptFinal(ctx, encData, &encDataLen);
++	EVP_CIPHER_CTX_free(ctx);
+ 	BIO_write(bdata, encData, encDataLen);
+ 	if (BIO_flush(bdata) != 1) {
+ 		logError(_("Unable to flush output\n"));

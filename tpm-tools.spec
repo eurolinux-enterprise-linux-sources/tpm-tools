@@ -1,17 +1,17 @@
 Name:             tpm-tools
 Summary:          Management tools for the TPM hardware
-Version:          1.3.8
-Release:          6%{?dist}
+Version:          1.3.9
+Release:          2%{?dist}
 License:          CPL
 Group:            Applications/System
 URL:              http://trousers.sourceforge.net
 
 Source0:          http://downloads.sourceforge.net/trousers/%{name}-%{version}.tar.gz
-# Package unnecessarily has -Werror and any problem kills the build
-Patch0:	          tpm-tools-1.3.5-no-werror.patch
-# Package has other flaws preventing proper build
-Patch1:           tpm-tools-1.3.7-build.patch
-
+# combination of upstream commit 5c5126b and submitted patch
+# upstream: https://sourceforge.net/p/trousers/mailman/trousers-tech/?viewmonth=201705
+Patch0:           tpm-sealdata.patch
+# upstream commit 9472ae7d72
+Patch1:           Fix-missing-linkage-with-openssl.patch
 BuildRequires:    trousers-devel openssl-devel opencryptoki-devel chrpath
 # Working with upstream to fix this, but in the mean time we need this
 BuildRequires:    automake autoconf
@@ -44,7 +44,7 @@ tpm-tools-devel is a package that contains the libraries and headers necessary
 for developing tpm-tools applications.
 
 %prep
-%setup -q
+%setup -cq
 %patch0 -p1
 %patch1 -p1
 autoreconf
@@ -87,6 +87,13 @@ chrpath -d %{buildroot}%{_bindir}/tpm_sealdata
 %{_mandir}/man3/tpmUnseal*
 
 %changelog
+* Thu May 04 2017 Jerry Snitselaar <jsnitsel@redhat.com> - 1.3.9-2
+- Fix missing linkage
+- Allocate and free cipher context (bz 1447827)
+
+* Thu Mar 30 2017 Jerry Snitselaar <jsnitsel@redhat.com> - 1.3.9-1
+Resolves: rhbz#1384447 Rebase tpm-tools to latest version
+
 * Fri Jan 24 2014 Daniel Mach <dmach@redhat.com> - 1.3.8-6
 - Mass rebuild 2014-01-24
 
